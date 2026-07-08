@@ -34,7 +34,9 @@ This project demonstrates a **strict separation of concerns** using a 3-layer ba
 | **Service** (`content.service.ts`) | Contains business rules (e.g. view-count logic, notification threshold) | No HTTP or DB code |
 | **Repository** (`content.repository.ts`) | Talks directly to Supabase | No business logic |
 
-📎 Full visual diagram: [`layered-architecture-diagram.png`](./layered-architecture-diagram.png)
+## 📊 Architecture Diagram
+
+![Layered Architecture Diagram](./layered-architecture-diagram.png)
 
 ---
 
