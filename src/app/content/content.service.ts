@@ -1,4 +1,4 @@
-import { ContentRepository } from "./content.repository";
+import { ContentPostgresRepository as ContentRepository } from "./content.postgres.repository";
 
 const NOTIFY_THRESHOLD = 100;
 
