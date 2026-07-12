@@ -31,6 +31,8 @@
 
 The `Route → Service → Repository` pattern used here means business logic never touches the database directly. It only ever talks to an interface. Because of that discipline, migrating from an **in-memory store** to a fully containerized **PostgreSQL database** touched only the import statement in `content.service.ts` — nothing else moved.
 
+**The feature:** A post-view tracking endpoint that increments a post's `view_count` and triggers a notification once the count crosses a threshold.
+
 <br>
 
 ## 🏛️ Architecture
@@ -71,9 +73,19 @@ The `Route → Service → Repository` pattern used here means business logic ne
 
 | Layer | File | Responsibility | Hard Rule |
 |:--:|:--:|:--|:--|
-| 🌐 **Route** | `route.ts` | Handles HTTP request/response | No business logic, no direct DB calls |
-| ⚙️ **Service** | `content.service.ts` | Business rules & orchestration | No HTTP or DB code |
+| 🌐 **Route** | `route.ts` | Handles the HTTP request/response | No business logic, no direct DB calls |
+| ⚙️ **Service** | `content.service.ts` | Business rules (view-count logic, notification threshold) | No HTTP or DB code |
 | 🗄️ **Repository** | `content.repository.ts` / `content.postgres.repository.ts` | Talks directly to storage | No business logic |
+
+</div>
+
+<br>
+
+### 📊 Full Architecture Diagram
+
+<div align="center">
+
+![Layered Architecture Diagram](./layered-architecture-diagram.png)
 
 </div>
 
@@ -116,6 +128,30 @@ import { ContentPostgresRepository
 <br>
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=6,11,20&height=3&width=100%"/>
+
+<br>
+
+## 🔄 How It Works
+
+1. **Client** sends a `POST` request with a `postId`.
+2. **Route** validates the request and passes control to the Service — it does not touch the database.
+3. **Service** fetches the post via the Repository, increments the view count, and checks if a notification threshold (100 views) has been reached.
+4. **Repository** performs the actual database read/write — it contains zero business rules.
+
+```
+POST /api/content
+Body: { "postId": "uuid-here" }
+```
+
+<div align="center">
+
+| Status | Meaning |
+|:--:|:--|
+| `200` | View registered successfully |
+| `400` | Missing `postId` |
+| `500` | Server / database error |
+
+</div>
 
 <br>
 
@@ -264,19 +300,29 @@ The `pgdata` named volume correctly persisted data **outside** the container lif
 ```
 ├── src/
 │   ├── app/
-│   │   ├── api/                                  # Route handlers
+│   │   ├── api/
+│   │   │   └── content/
+│   │   │       └── route.ts                       # HTTP layer (POST handler)
 │   │   └── content/
-│   │       ├── content.repository.ts             # In-memory implementation
-│   │       ├── content.postgres.repository.ts     # PostgreSQL implementation
-│   │       ├── content.service.ts                 # Business logic (storage-agnostic)
-│   │       └── init.sql                           # Schema init script
+│   │       ├── content.repository.ts               # In-memory implementation
+│   │       ├── content.postgres.repository.ts       # PostgreSQL implementation
+│   │       ├── content.service.ts                   # Business logic (storage-agnostic)
+│   │       └── init.sql                             # Schema init script
 │   └── lib/
-│       └── postgres.ts                           # Connection pool
-├── Dockerfile                                    # Next.js app image
-├── docker-compose.yml                            # App + Postgres orchestration
-├── .env.example                                  # Required env var template
+│       └── postgres.ts                             # Connection pool
+├── layered-architecture-diagram.png                # Architecture diagram
+├── Dockerfile                                      # Next.js app image
+├── docker-compose.yml                              # App + Postgres orchestration
+├── .env.example                                    # Required env var template
 └── README.md
 ```
+
+<br>
+
+## 🧠 Design Decisions & Trade-offs
+
+- **Why separate layers?** Each layer can be tested and modified independently — swapping the database engine only requires changing the Repository, never the Service or Route.
+- **Trade-off:** This adds more files and indirection for a simple feature, which can feel like overhead on small projects. The benefit shows as the codebase grows — business logic stays decoupled from infrastructure, making it far easier to unit test and extend.
 
 <br>
 
@@ -294,18 +340,6 @@ The `pgdata` named volume correctly persisted data **outside** the container lif
 
 <br>
 
-## 🧠 Why This Matters
-
-The entire point of layered architecture is **isolation of concerns**:
-
-- 🌐 The **Route** doesn't know or care how data is stored
-- ⚙️ The **Service** only ever talks to a `Repository` interface — never a driver
-- 🗄️ The **Repository** is the *only* place aware of Postgres, SQL, or pooling
-
-Because of that discipline, migrating from memory to a real, persistent, containerized database required **zero changes to business logic** — only a one-line import swap. This is the architecture proving itself under real conditions.
-
-<br>
-
 ## 🩹 Stretch Goals *(future work)*
 
 - [ ] Add Redis to `docker-compose.yml` for caching *(Week 4)*
@@ -317,7 +351,12 @@ Because of that discipline, migrating from memory to a real, persistent, contain
 
 <div align="center">
 
-**Numair Iqbal** · FlyRank AI — Backend AI Engineering Internship
+**Numair Iqbal**
+BS Computer Science — University of Layyah
+Backend & AI Engineering Intern @ FlyRank AI
+
+[![GitHub](https://img.shields.io/badge/GitHub-Numair--Iqbal-181717?style=flat-square&logo=github)](https://github.com/Numair-Iqbal)
+
 BE-04 — Docker + PostgreSQL Integration
 
 </div>
