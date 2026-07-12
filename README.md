@@ -1,198 +1,323 @@
-# FlyRank Layered Architecture — BE-04: Docker + PostgreSQL
+<div align="center">
 
-A demonstration of clean layered architecture (Route → Service → Repository) proven through a real storage swap: from an in-memory store to a persistent PostgreSQL database, fully containerized with Docker.
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=220&section=header&text=FlyRank%20BE-04&fontSize=55&fontColor=ffffff&animation=fadeIn&fontAlignY=35&desc=Docker%20%2B%20PostgreSQL%20Integration&descAlignY=55&descSize=20" width="100%"/>
 
----
+<br>
 
-## 🏗️ Architecture Overview
+<img src="https://skillicons.dev/icons?i=nextjs,typescript,postgres,docker&theme=dark" height="70"/>
 
-This project follows a strict **Route → Service → Repository** pattern:
+<br><br>
 
-```
-Route (API Handler)
-   │
-   ▼
-Service (Business Logic)
-   │
-   ▼
-Repository (Data Access) ──► In-Memory Store  OR  PostgreSQL
-```
+![Status](https://img.shields.io/badge/STATUS-COMPLETED-00C853?style=for-the-badge&labelColor=1a1a1a)
+![Architecture](https://img.shields.io/badge/ARCHITECTURE-LAYERED-FF6D00?style=for-the-badge&labelColor=1a1a1a)
+![Database](https://img.shields.io/badge/DATABASE-POSTGRESQL-336791?style=for-the-badge&labelColor=1a1a1a&logo=postgresql&logoColor=white)
 
-**The core principle proven in this task:** swapping the storage layer required changing **exactly one line** — a single import statement in `content.service.ts`. No changes were made to routes, services, or business logic.
+<br>
+
+### *A production-style layered architecture, proven through a real storage migration —*
+### *from an in-memory store to a persistent, containerized PostgreSQL database.*
+
+</div>
+
+<br>
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=6,11,20&height=3&width=100%"/>
+
+<br>
+
+## 📌 Overview
+
+> **The one idea this project proves:** when storage layers are properly isolated, swapping the entire persistence engine — from memory to a real database — requires changing exactly **one line of code**.
+
+The `Route → Service → Repository` pattern used here means business logic never touches the database directly. It only ever talks to an interface. Because of that discipline, migrating from an **in-memory store** to a fully containerized **PostgreSQL database** touched only the import statement in `content.service.ts` — nothing else moved.
+
+<br>
+
+## 🏛️ Architecture
+
+<div align="center">
+<table>
+<tr>
+<td align="center" width="200">
+
+### 🌐
+### ROUTE
+**HTTP Layer**
+
+</td>
+<td align="center">➜</td>
+<td align="center" width="200">
+
+### ⚙️
+### SERVICE
+**Business Logic**
+
+</td>
+<td align="center">➜</td>
+<td align="center" width="220">
+
+### 🗄️
+### REPOSITORY
+**In-Memory ⇄ PostgreSQL**
+
+</td>
+</tr>
+</table>
+</div>
+
+<br>
+
+<div align="center">
+
+| Layer | File | Responsibility | Hard Rule |
+|:--:|:--:|:--|:--|
+| 🌐 **Route** | `route.ts` | Handles HTTP request/response | No business logic, no direct DB calls |
+| ⚙️ **Service** | `content.service.ts` | Business rules & orchestration | No HTTP or DB code |
+| 🗄️ **Repository** | `content.repository.ts` / `content.postgres.repository.ts` | Talks directly to storage | No business logic |
+
+</div>
+
+<br>
+
+## 🔁 The One-Line Proof
+
+<table>
+<tr>
+<th align="center" width="50%">❌ Before — In-Memory</th>
+<th align="center" width="50%">✅ After — PostgreSQL</th>
+</tr>
+<tr>
+<td>
 
 ```ts
-// Before
-import { ContentRepository } from "./content.repository";
-
-// After
-import { ContentPostgresRepository as ContentRepository } from "./content.postgres.repository";
+import { ContentRepository } 
+  from "./content.repository";
 ```
 
----
+</td>
+<td>
 
-## 🐳 Tech Stack
+```ts
+import { ContentPostgresRepository 
+  as ContentRepository } 
+  from "./content.postgres.repository";
+```
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 16 (App Router) |
-| Language | TypeScript |
-| Database | PostgreSQL 16 |
-| Containerization | Docker + Docker Compose |
-| ORM/Driver | `pg` (node-postgres) |
+</td>
+</tr>
+</table>
 
----
+<div align="center">
 
-## 📦 What's Included
+**Everything else in `content.service.ts` stayed byte-for-byte identical.**
 
-- ✅ PostgreSQL running in Docker with a **named volume** for data persistence
-- ✅ Full stack (app + database) starts with a **single command**
-- ✅ Connection string managed via `.env.local` (gitignored, `.env.example` committed)
-- ✅ `ContentPostgresRepository` implementing the same interface as the in-memory repository
-- ✅ SQL init script that auto-creates the schema on first run
-- ✅ Verified persistence across a full container + app restart
+</div>
 
----
+<br>
 
-## 🚀 Getting Started
+<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=6,11,20&height=3&width=100%"/>
 
-### Prerequisites
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
-- Node.js 20+ and npm
+<br>
 
-### 1. Clone the repository
+## 🧰 Tech Stack
+
+<div align="center">
+
+<table>
+<tr>
+<td align="center" width="150"><b>Framework</b><br>Next.js 16</td>
+<td align="center" width="150"><b>Language</b><br>TypeScript</td>
+<td align="center" width="150"><b>Database</b><br>PostgreSQL 16</td>
+<td align="center" width="150"><b>Containers</b><br>Docker Compose</td>
+<td align="center" width="150"><b>Driver</b><br>node-postgres</td>
+</tr>
+</table>
+
+</div>
+
+<br>
+
+## ✨ What This Project Delivers
+
+<table>
+<tr><td>✅</td><td>PostgreSQL running in Docker with a <b>named volume</b> — data survives restarts</td></tr>
+<tr><td>✅</td><td>Entire stack (app + database) boots with <b>one single command</b></td></tr>
+<tr><td>✅</td><td>Secrets managed via <code>.env.local</code> — gitignored, with a safe <code>.env.example</code> committed</td></tr>
+<tr><td>✅</td><td><code>ContentPostgresRepository</code> implements the <b>exact same interface</b> as the in-memory version</td></tr>
+<tr><td>✅</td><td>Auto-provisioning SQL script — schema creates itself on first boot</td></tr>
+<tr><td>✅</td><td><b>Persistence formally verified</b> across a full container + application restart</td></tr>
+</table>
+
+<br>
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=6,11,20&height=3&width=100%"/>
+
+<br>
+
+## 🚀 Quick Start
+
+**1️⃣ Prerequisites** — [Docker Desktop](https://www.docker.com/products/docker-desktop/) running · Node.js 20+ · npm
+
+**2️⃣ Clone & Enter**
 ```bash
 git clone https://github.com/Numair-Iqbal/flyrank-layered-architecture-assignment.git
 cd flyrank-layered-architecture-assignment
 ```
 
-### 2. Set up environment variables
-Copy the example file and fill in your own values:
+**3️⃣ Configure Environment**
 ```bash
 cp .env.example .env.local
 ```
-
-Required variables:
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/flyrank_db
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-### 3. Install dependencies
+**4️⃣ Install & Launch**
 ```bash
 npm install
-```
-
-### 4. Start the full stack
-```bash
 docker compose up
 ```
 
-This single command:
-- Pulls and starts a **PostgreSQL 16** container with a persistent volume
-- Automatically runs `init.sql` on first boot to create the `posts` table
-- Builds and starts the **Next.js app** container
-- App becomes available at → `http://localhost:3000`
+<div align="center">
 
----
+## 🎉 App live at → `http://localhost:3000`
+
+</div>
+
+This single command pulls **PostgreSQL 16**, provisions the schema via `init.sql`, builds the **Next.js** image, and wires both containers together on one network.
+
+<br>
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=6,11,20&height=3&width=100%"/>
+
+<br>
 
 ## 🗄️ Database Schema
 
 ```sql
 CREATE TABLE IF NOT EXISTS posts (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title TEXT NOT NULL,
-  content TEXT,
-  view_count INTEGER NOT NULL DEFAULT 0,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title       TEXT NOT NULL,
+  content     TEXT,
+  view_count  INTEGER NOT NULL DEFAULT 0,
+  created_at  TIMESTAMP NOT NULL DEFAULT NOW()
 );
 ```
 
----
+<br>
 
 ## ✅ Persistence Verification
 
-Persistence was tested and confirmed using the following process:
+<details open>
+<summary><b>🔍 Click to expand the exact test performed</b></summary>
 
-1. **Insert a test row directly into the running Postgres container:**
-   ```bash
-   docker exec -it flyrank-layered-architecture-assignment-postgres-1 \
-     psql -U postgres -d flyrank_db \
-     -c "INSERT INTO posts (title, content) VALUES ('Persistence Test', 'Verifying data survives a restart') RETURNING id, title;"
-   ```
+<br>
 
-2. **Stop and remove the containers (without touching the volume):**
-   ```bash
-   docker compose down
-   ```
+**Step 1 — Insert a row directly into the running container**
+```bash
+docker exec -it flyrank-layered-architecture-assignment-postgres-1 \
+  psql -U postgres -d flyrank_db \
+  -c "INSERT INTO posts (title, content) VALUES ('Persistence Test', 'Verifying data survives a restart') RETURNING id, title;"
+```
 
-3. **Restart the full stack:**
-   ```bash
-   docker compose up
-   ```
+**Step 2 — Tear down containers (volume untouched)**
+```bash
+docker compose down
+```
 
-4. **Confirm the row is still present:**
-   ```bash
-   docker exec -it flyrank-layered-architecture-assignment-postgres-1 \
-     psql -U postgres -d flyrank_db -c "SELECT * FROM posts;"
-   ```
+**Step 3 — Restart the entire stack**
+```bash
+docker compose up
+```
 
-**Result:** ✔️ The test row survived the full container restart, and Postgres logged:
+**Step 4 — Confirm the row survived**
+```bash
+docker exec -it flyrank-layered-architecture-assignment-postgres-1 \
+  psql -U postgres -d flyrank_db -c "SELECT * FROM posts;"
+```
+
+</details>
+
+<div align="center">
+
+### ![Passed](https://img.shields.io/badge/RESULT-PASSED-00C853?style=for-the-badge&labelColor=1a1a1a)
+
+</div>
+
+Postgres logged the proof itself on restart:
 ```
 PostgreSQL Database directory appears to contain a database; Skipping initialization
 ```
-This confirms the named volume (`pgdata`) correctly persisted the data outside the container's lifecycle.
 
----
+The `pgdata` named volume correctly persisted data **outside** the container lifecycle — exactly what the assignment required.
 
-## 📁 Project Structure
+<br>
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=6,11,20&height=3&width=100%"/>
+
+<br>
+
+## 📂 Project Structure
 
 ```
 ├── src/
 │   ├── app/
-│   │   ├── api/                          # Route handlers
+│   │   ├── api/                                  # Route handlers
 │   │   └── content/
-│   │       ├── content.repository.ts           # In-memory implementation
-│   │       ├── content.postgres.repository.ts   # PostgreSQL implementation
-│   │       ├── content.service.ts               # Business logic (storage-agnostic)
-│   │       └── init.sql                         # DB schema init script
+│   │       ├── content.repository.ts             # In-memory implementation
+│   │       ├── content.postgres.repository.ts     # PostgreSQL implementation
+│   │       ├── content.service.ts                 # Business logic (storage-agnostic)
+│   │       └── init.sql                           # Schema init script
 │   └── lib/
-│       └── postgres.ts                   # PostgreSQL connection pool
-├── Dockerfile                            # Next.js app image
-├── docker-compose.yml                    # App + Postgres orchestration
-├── .env.example                          # Template for required env vars
+│       └── postgres.ts                           # Connection pool
+├── Dockerfile                                    # Next.js app image
+├── docker-compose.yml                            # App + Postgres orchestration
+├── .env.example                                  # Required env var template
 └── README.md
 ```
 
----
+<br>
 
-## 🔐 Environment & Security Notes
+## 🔐 Security Notes
 
-- `.env.local` is **gitignored** and never committed — it contains real credentials.
-- `.env.example` is committed as a template showing which variables are required, without real values.
-- Postgres credentials in this setup (`postgres` / `postgres`) are for **local development only** and are not suitable for production use.
+<div align="center">
 
----
+| Item | Status |
+|:--|:--:|
+| `.env.local` committed to Git | ❌ Never — gitignored |
+| `.env.example` committed | ✅ Template only, no real secrets |
+| Postgres creds (`postgres`/`postgres`) | ⚠️ Local dev only |
 
-## 🧠 Design Notes — Why This Matters
+</div>
 
-The whole point of the layered architecture is **isolation of concerns**:
+<br>
 
-- The **Route** layer doesn't know or care how data is stored.
-- The **Service** layer only talks to a `Repository` interface — never a database driver directly.
-- The **Repository** layer is the only place that knows about Postgres, SQL, or connection pooling.
+## 🧠 Why This Matters
 
-Because of this, migrating from an in-memory store to a real, persistent PostgreSQL database required **zero changes** to business logic or API contracts — only a one-line import swap. This is the architecture proving itself.
+The entire point of layered architecture is **isolation of concerns**:
 
----
+- 🌐 The **Route** doesn't know or care how data is stored
+- ⚙️ The **Service** only ever talks to a `Repository` interface — never a driver
+- 🗄️ The **Repository** is the *only* place aware of Postgres, SQL, or pooling
 
-## 🩹 Stretch Goals (Optional, Not Implemented)
+Because of that discipline, migrating from memory to a real, persistent, containerized database required **zero changes to business logic** — only a one-line import swap. This is the architecture proving itself under real conditions.
 
-- [ ] Add Redis to `docker-compose.yml` for caching (planned for Week 4)
+<br>
+
+## 🩹 Stretch Goals *(future work)*
+
+- [ ] Add Redis to `docker-compose.yml` for caching *(Week 4)*
 - [ ] Add an index on `posts` and benchmark with `EXPLAIN ANALYZE`
 
----
+<br>
 
-**Author:** Numair Iqbal
-**Program:** FlyRank AI — Backend AI Engineering Track
-**Assignment:** BE-04 — Docker + PostgreSQL Integration
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=footer"/>
+
+<div align="center">
+
+**Numair Iqbal** · FlyRank AI — Backend AI Engineering Internship
+BE-04 — Docker + PostgreSQL Integration
+
+</div>
